@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<title>David Origen — High-Performance Habit Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C96A;
+    --gold-pale: #F5E6B8;
+    --black: #080808;
+    --black-deep: #030303;
+    --black-card: #0F0F0F;
+    --black-border: #1A1A1A;
+    --white: #F5F0E8;
+    --grey: #888;
+    --grey-light: #aaa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black-deep);
+    color: var(--white);
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ─── GRAIN OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ─── NAVIGATION ─── */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(3,3,3,0.92);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .nav-logo span {
+    font-weight: 300;
+    color: var(--grey-light);
+    font-size: 0.65rem;
+    display: block;
+    letter-spacing: 0.3em;
+    margin-top: 1px;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 6px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--grey);
+    text-decoration: none;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 8px 12px;
+    border-radius: 2px;
+    transition: all 0.3s;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .nav-links a:hover,
+  .nav-links a.active {
+    color: var(--gold);
+    background: rgba(201,168,76,0.08);
+  }
+
+  /* ─── HAMBURGER ─── */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 4px;
+  }
+  .hamburger span {
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--gold);
+    transition: all 0.3s;
+  }
+
+  .mobile-menu {
+    display: none;
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: rgba(3,3,3,0.98);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(201,168,76,0.15);
+    z-index: 999;
+    padding: 20px 0;
+  }
+  .mobile-menu.open { display: block; }
+  .mobile-menu a {
+    display: block;
+    color: var(--grey);
+    text-decoration: none;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 14px 40px;
+    font-weight: 500;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    transition: all 0.3s;
+  }
+  .mobile-menu a:hover { color: var(--gold); background: rgba(201,168,76,0.05); }
+
+  /* ─── SECTIONS ─── */
+  section {
+    min-height: 100vh;
+    padding: 120px 80px 80px;
+    display: none;
+    animation: fadeSection 0.6s ease;
+  }
+
+  section.active { display: block; }
+
+  @keyframes fadeSection {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── SECTION HERO ─── */
+  .section-eyebrow {
+    font-size: 0.6rem;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .section-eyebrow::after {
+    content: '';
+    flex: 1;
+    max-width: 60px;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.4;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 300;
+    line-height: 1.05;
+    color: var(--white);
+    margin-bottom: 16px;
+  }
+
+  .section-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .section-subtitle {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--grey);
+    margin-bottom: 60px;
+    max-width: 500px;
+    line-height: 1.8;
+  }
+
+  /* ─── HOME SECTION ─── */
+  #home {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #home.active { display: flex; }
+
+  .home-bg-circle {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.06);
+    animation: rotateCircle 30s linear infinite;
+  }
+
+  .home-bg-circle:nth-child(1) { width: 500px; height: 500px; }
+  .home-bg-circle:nth-child(2) { width: 750px; height: 750px; animation-duration: 45s; animation-direction: reverse; border-color: rgba(201,168,76,0.04); }
+  .home-bg-circle:nth-child(3) { width: 1000px; height: 1000px; animation-duration: 60s; border-color: rgba(201,168,76,0.02); }
+
+  @keyframes rotateCircle {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+  .home-content { position: relative; z-index: 2; }
+
+  .home-logo-wrap {
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: riseUp 1s ease 0.2s forwards;
+  }
+
+  .home-logo-circle {
+    width: 100px;
+    height: 100px;
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+
+  .home-logo-circle::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.15);
+  }
+
+  .home-logo-symbol {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .home-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3.5rem, 8vw, 7rem);
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    line-height: 0.9;
+    opacity: 0;
+    animation: riseUp 1s ease 0.4s forwards;
+  }
+
+  .home-name .origen {
+    color: var(--white);
+    font-weight: 300;
+    display: block;
+    letter-spacing: 0.25em;
+    font-size: 0.45em;
+    margin-top: 8px;
+  }
+
+  .home-tagline {
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--grey);
+    margin: 28px 0 48px;
+    opacity: 0;
+    animation: riseUp 1s ease 0.6s forwards;
+  }
+
+  .home-phrase {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+    font-style: italic;
+    color: var(--gold-pale);
+    max-width: 640px;
+    line-height: 1.5;
+    opacity: 0;
+    animation: riseUp 1s ease 0.8s forwards;
+    margin: 0 auto 60px;
+  }
+
+  .home-nav-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    max-width: 800px;
+    width: 100%;
+    opacity: 0;
+    animation: riseUp 1s ease 1s forwards;
+  }
+
+  .home-nav-btn {
+    border: 1px solid rgba(201,168,76,0.2);
+    background: rgba(201,168,76,0.03);
+    color: var(--grey-light);
+    padding: 16px 12px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+  }
+
+  .home-nav-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+    background: rgba(201,168,76,0.08);
+  }
+
+  @keyframes riseUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─── CARDS GRID ─── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 40px;
+  }
+
+  .card {
+    background: var(--black-card);
+    border: 1px solid var(--black-border);
+    padding: 36px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    height: 0;
+    background: var(--gold);
+    transition: height 0.4s;
+  }
+
+  .card:hover::before { height: 100%; }
+  .card:hover { border-color: rgba(201,168,76,0.2); transform: translateY(-3px); }
+
+  .card-icon {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--gold);
+    margin-bottom: 14px;
+    line-height: 1.2;
+  }
+
+  .card-text {
+    font-size: 0.72rem;
+    line-height: 1.9;
+    color: var(--grey-light);
+    font-weight: 300;
+  }
+
+  .card-number {
+    position: absolute;
+    bottom: 20px;
+    right: 24px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 4rem;
+    font-weight: 700;
+    color: rgba(201,168,76,0.06);
+    line-height: 1;
+  }
+
+  /* ─── TWO COL LAYOUT ─── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: start;
+  }
+
+  .col-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .col-label .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+  }
+
+  /* ─── PAIN / BENEFIT ITEMS ─── */
+  .pain-item, .benefit-item {
+    padding: 24px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    transition: all 0.3s;
+  }
+
+  .pain-item:hover, .benefit-item:hover {
+    padding-left: 8px;
+  }
+
+  .pain-item:last-child, .benefit-item:last-child { border-bottom: none; }
+
+  .pain-icon, .benefit-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .pain-icon { background: rgba(180,60,60,0.12); border: 1px solid rgba(180,60,60,0.2); }
+  .benefit-icon { background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2); }
+
+  .pain-title, .benefit-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .pain-title { color: #d4726a; }
+  .benefit-title { color: var(--gold); }
+
+  .pain-desc, .benefit-desc {
+    font-size: 0.7rem;
+    line-height: 1.85;
+    color: var(--grey);
+    font-weight: 300;
+  }
+
+  /* ─── EGO BANNER ─── */
+  .ego-banner {
+    margin: 60px 0 40px;
+    padding: 40px 48px;
+    border: 1px solid rgba(201,168,76,0.25);
+    background: linear-gradient(135deg, rgba(201,168,76,0.05) 0%, transparent 60%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ego-banner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .ego-banner-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    opacity: 0.7;
+  }
+
+  .ego-banner-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    font-style: italic;
+    color: var(--white);
+    line-height: 1.4;
+    max-width: 700px;
+  }
+
+  .ego-banner-text strong { color: var(--gold); font-style: normal; font-weight: 600; }
+
+  /* ─── DIVIDER ─── */
+  .gold-divider {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 50px 0;
+  }
+
+  .gold-divider::before, .gold-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent);
+  }
+
+  .gold-divider-icon {
+    color: var(--gold);
+    opacity: 0.5;
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+  }
+
+  /* ─── STAT STRIP ─── */
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--black-border);
+    margin: 50px 0;
+    border: 1px solid var(--black-border);
+  }
+
+  .stat-item {
+    background: var(--black-card);
+    padding: 28px 20px;
+    text-align: center;
+    transition: background 0.3s;
+  }
+
+  .stat-item:hover { background: rgba(201,168,76,0.04); }
+
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem;
+    font-weight: 300;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .stat-label {
+    font-size: 0.58rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--grey);
+    line-height: 1.5;
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--black-deep); }
+  ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.3); border-radius: 2px; }
+
+  /* ─── FOOTER ─── */
+  .section-footer {
+    margin-top: 80px;
+    padding-top: 30px;
+    border-top: 1px solid var(--black-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .section-footer-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.9rem;
+    color: rgba(201,168,76,0.4);
+    letter-spacing: 0.1em;
+  }
+
+  .section-footer-num {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: rgba(255,255,255,0.1);
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    section { padding: 100px 30px 60px; }
+    .two-col { grid-template-columns: 1fr; gap: 40px; }
+    .stat-strip { grid-template-columns: repeat(2, 1fr); }
+    nav { padding: 0 24px; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+  }
+
+  @media (max-width: 500px) {
+    section { padding: 90px 20px 50px; }
+    .home-nav-grid { grid-template-columns: 1fr 1fr; }
+    .ego-banner { padding: 28px 24px; }
+    .stat-strip { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    David Origen
+    <span>High-Performance Habit Manager</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#" onclick="showSection('home')" class="active" id="nav-home">Inicio</a></li>
+    <li><a href="#" onclick="showSection('clientes')" id="nav-clientes">Clientes</a></li>
+  </ul>
+  <div class="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#" onclick="showSection('home'); toggleMenu()">Inicio</a>
+  <a href="#" onclick="showSection('clientes'); toggleMenu()">Clientes</a>
+</div>
+
+<!-- ═══════════════════════════════════════
+     HOME
+═══════════════════════════════════════ -->
+<section id="home" class="active">
+  <div class="home-bg-circle"></div>
+  <div class="home-bg-circle"></div>
+  <div class="home-bg-circle"></div>
+  <div class="home-content">
+    <div class="home-logo-wrap">
+      <div class="home-logo-circle">
+        <span class="home-logo-symbol">∞</span>
+      </div>
+    </div>
+    <div class="home-name">
+      DAVID
+      <span class="origen">ORIGEN</span>
+    </div>
+    <p class="home-tagline">High-Performance Habit Manager</p>
+    <p class="home-phrase">
+      "Cada vez somos más Elon Musk y menos Jesucristo.<br>Volver al origen."
+    </p>
+    <div class="home-nav-grid">
+      <button class="home-nav-btn" onclick="showSection('clientes')">
+        01 — Clientes<br>Preocupaciones & Beneficios
+      </button>
+      <button class="home-nav-btn" style="opacity:0.35; cursor:not-allowed">
+        02 — Próximamente
+      </button>
+      <button class="home-nav-btn" style="opacity:0.35; cursor:not-allowed">
+        03 — Próximamente
+      </button>
+      <button class="home-nav-btn" style="opacity:0.35; cursor:not-allowed">
+        04 — Próximamente
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     CLIENTES — PREOCUPACIONES & BENEFICIOS
+═══════════════════════════════════════ -->
+<section id="clientes">
+
+  <div class="section-eyebrow">01 — Cliente ideal</div>
+  <h1 class="section-title">Preocupaciones <em>&</em> Beneficios</h1>
+
+  <div class="two-col" style="margin-top:50px">
+
+    <!-- PREOCUPACIONES -->
+    <div>
+      <div class="col-label">
+        <span class="dot" style="background:#d4726a"></span>
+        Mayores preocupaciones
+      </div>
+
+      <div class="pain-item">
+        <div class="pain-icon">⏳</div>
+        <div>
+          <div class="pain-title">Mantenerse joven</div>
+          <div class="pain-desc">Mantenerse joven más tiempo para aprovechar la vida siendo jóvenes con dinero.</div>
+        </div>
+      </div>
+
+      <div class="pain-item">
+        <div class="pain-icon">🧠</div>
+        <div>
+          <div class="pain-title">Rendir a nivel superior mentalmente</div>
+          <div class="pain-desc">Son conscientes de que su cabeza vale mucho dinero, y tienen que alimentarla con buenos hábitos, sueño profundo correcto, alimentación óptima, entrenamiento adecuado a nivel funcional y estético. Verse bien, que la ropa quede bien es muy importante porque se exponen públicamente y eso les da mucha seguridad y confianza en ellos mismos y el resto lo perciben.</div>
+        </div>
+      </div>
+
+      <div class="pain-item">
+        <div class="pain-icon">⚡</div>
+        <div>
+          <div class="pain-title">Energía real sin estimulantes</div>
+          <div class="pain-desc">Energía como si vivieran metiéndose todo el Monster que beben por vía intravenosa, sin drogarse y reduciendo mucho la cantidad de Monster que beben, que saben que es muy perjudicial para ellos.</div>
+        </div>
+      </div>
+
+      <div class="pain-item">
+        <div class="pain-icon">💼</div>
+        <div>
+          <div class="pain-title">Vida sedentaria con ansiedad disparada</div>
+          <div class="pain-desc">Tíos con pasta que están todo el día sentados, cuesta mucho sacar tiempo para hacer actividad física pero son conscientes de que la necesitan. Viven obsesionados con su trabajo. Muchos han ganado mucho dinero pero se han dejado la condición física por el camino, y tienen unos niveles de ansiedad brutal, con lo que la salud se ha visto muy afectada.</div>
+        </div>
+      </div>
+
+      <div class="pain-item">
+        <div class="pain-icon">🏋️</div>
+        <div>
+          <div class="pain-title">Sin progreso en el gimnasio</div>
+          <div class="pain-desc">Estos hábitos negativos no les permiten progresar tampoco en el gimnasio.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BENEFICIOS -->
+    <div>
+      <div class="col-label">
+        <span class="dot"></span>
+        Mayores beneficios
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">🌙</div>
+        <div>
+          <div class="benefit-title">Estar más descansados sin dormir más horas</div>
+          <div class="benefit-desc">Estar más descansados sin dormir más horas incluso.</div>
+        </div>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">💡</div>
+        <div>
+          <div class="benefit-title">Más lucidez mental</div>
+          <div class="benefit-desc">Más lucidez mental, incluso a horas en las que normalmente no rendirían (niebla mental al despertar, o tras los bajones a media tarde). Pueden ser mucho más productivos.</div>
+        </div>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">🌍</div>
+        <div>
+          <div class="benefit-title">Aprovechar la vida hasta edades tardías</div>
+          <div class="benefit-desc">Mantenerse jóvenes y con más energía les permite aprovechar la vida hasta edades tardías. Irse de viaje continuamente y hasta edades avanzadas, ser atractivos y poder mantener relaciones sexuales intensas durante muchísimos más años.</div>
+        </div>
+      </div>
+
+      <div class="benefit-item">
+        <div class="benefit-icon">👁️</div>
+        <div>
+          <div class="benefit-title">Atractivo físico — el ego como motor</div>
+          <div class="benefit-desc">El atractivo físico hará que la ropa te quede muchísimo mejor, te pongas la que te pongas, la que más te guste. Lo verán los demás rápidamente y será un ejemplo a seguir. El ego juega un papel fundamental — todos los beneficios deben girar en torno a subir el ego.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section-footer">
+    <div class="section-footer-brand">David Origen © 2025</div>
+    <div class="section-footer-num">Sección 01 / Clientes</div>
+  </div>
+</section>
+
+<script>
+  function showSection(id) {
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+    const navEl = document.getElementById('nav-' + id);
+    if (navEl) navEl.classList.add('active');
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function toggleMenu() {
+    document.getElementById('mobileMenu').classList.toggle('open');
+  }
+
+  // Close mobile menu on outside click
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('mobileMenu');
+    if (!e.target.closest('nav') && !e.target.closest('#mobileMenu')) {
+      menu.classList.remove('open');
+    }
+  });
+</script>
+</body>
+</html>
