@@ -644,6 +644,7 @@
     <li><a href="#" onclick="showSection('home')" class="active" id="nav-home">Inicio</a></li>
     <li><a href="#" onclick="showSection('clientes')" id="nav-clientes">Clientes</a></li>
     <li><a href="#" onclick="showSection('youtube')" id="nav-youtube">YouTube</a></li>
+    <li><a href="#" onclick="showSection('series')" id="nav-series">Series</a></li>
   </ul>
   <div class="hamburger" onclick="toggleMenu()">
     <span></span><span></span><span></span>
@@ -655,6 +656,7 @@
   <a href="#" onclick="showSection('home'); toggleMenu()">Inicio</a>
   <a href="#" onclick="showSection('clientes'); toggleMenu()">Clientes</a>
   <a href="#" onclick="showSection('youtube'); toggleMenu()">YouTube</a>
+  <a href="#" onclick="showSection('series'); toggleMenu()">Series</a>
 </div>
 
 <!-- ═══════════════════════════════════════
@@ -680,8 +682,8 @@
       <button class="home-nav-btn" onclick="showSection('youtube')">
         02 — Estructura YouTube
       </button>
-      <button class="home-nav-btn" style="opacity:0.35; cursor:not-allowed">
-        03 — Próximamente
+      <button class="home-nav-btn" onclick="showSection('series')">
+        03 — Series YouTube
       </button>
       <button class="home-nav-btn" style="opacity:0.35; cursor:not-allowed">
         04 — Próximamente
@@ -1161,6 +1163,306 @@
   </div>
 </section>
 
+
+<!-- ═══════════════════════════════════════
+     SERIES — CONTENIDO YOUTUBE
+═══════════════════════════════════════ -->
+<section id="series">
+
+  <style>
+    /* ─── SERIES SECTION ─── */
+    .series-block { margin-bottom: 60px; }
+
+    .series-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+    }
+
+    .series-badge {
+      font-size: 0.55rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--black-deep);
+      background: var(--gold);
+      padding: 5px 12px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .series-badge--secondary {
+      background: transparent;
+      color: var(--gold);
+      border: 1px solid rgba(201,168,76,0.4);
+    }
+
+    .series-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.6rem;
+      font-weight: 600;
+      color: var(--white);
+      line-height: 1.1;
+    }
+
+    .series-count {
+      margin-left: auto;
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--grey);
+      flex-shrink: 0;
+    }
+
+    /* Video grid */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .video-card {
+      background: var(--black-card);
+      border: 1px solid var(--black-border);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: border-color 0.3s, transform 0.3s;
+      overflow: hidden;
+    }
+
+    .video-card:hover {
+      border-color: rgba(201,168,76,0.25);
+      transform: translateY(-2px);
+    }
+
+    /* Thumbnail area */
+    .video-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: #0a0a0a;
+      border-bottom: 1px solid var(--black-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .video-thumb-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.2;
+    }
+
+    .video-thumb-placeholder svg {
+      width: 28px;
+      height: 28px;
+      fill: var(--gold);
+    }
+
+    .video-thumb-placeholder span {
+      font-size: 0.5rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    .video-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Order badge */
+    .video-order {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--gold);
+      background: rgba(3,3,3,0.85);
+      padding: 3px 8px;
+      letter-spacing: 0.1em;
+    }
+
+    /* Card body */
+    .video-body {
+      padding: 18px 20px 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .video-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--white);
+      line-height: 1.3;
+    }
+
+    .video-desc {
+      font-size: 0.75rem;
+      line-height: 1.7;
+      color: var(--grey);
+      flex: 1;
+    }
+
+    .video-desc a {
+      color: var(--gold);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(201,168,76,0.3);
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .video-desc a:hover { border-color: var(--gold); }
+
+    .video-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--grey);
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .video-status-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--black-border);
+      flex-shrink: 0;
+    }
+
+    .video-status-dot--pending { background: rgba(201,168,76,0.4); }
+    .video-status-dot--done { background: #7eb8a8; }
+
+    @media (max-width: 640px) {
+      .video-grid { grid-template-columns: 1fr; }
+      .series-title { font-size: 1.3rem; }
+    }
+  </style>
+
+  <div class="section-eyebrow">03 — Series de contenido</div>
+  <h1 class="section-title">Vídeos <em>planificados</em></h1>
+
+  <!-- ── SERIE 1: CURSO DE HÁBITOS ── -->
+  <div class="series-block" style="margin-top:48px;">
+    <div class="series-header">
+      <div class="series-badge">Serie 01</div>
+      <div class="series-title">El curso de hábitos</div>
+      <div class="series-count">4 vídeos</div>
+    </div>
+
+    <div class="video-grid">
+
+      <!-- VID 01 -->
+      <div class="video-card">
+        <div class="video-thumb">
+          <div class="video-thumb-placeholder">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12l-18 10V2z"/></svg>
+            <span>Miniatura</span>
+          </div>
+          <div class="video-order">01</div>
+        </div>
+        <div class="video-body">
+          <div class="video-title">INTRO del canal (qué vamos a enseñar en este curso)</div>
+          <div class="video-desc">Consultar <a onclick="showSection('youtube')">apartado 2 — Estructura de YouTube</a>.</div>
+          <div class="video-status">
+            <div class="video-status-dot video-status-dot--pending"></div>
+            Pendiente
+          </div>
+        </div>
+      </div>
+
+      <!-- VID 02 -->
+      <div class="video-card">
+        <div class="video-thumb">
+          <div class="video-thumb-placeholder">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12l-18 10V2z"/></svg>
+            <span>Miniatura</span>
+          </div>
+          <div class="video-order">02</div>
+        </div>
+        <div class="video-body">
+          <div class="video-title">La rutina de hábitos perfecta sin llegar a los extremos</div>
+          <div class="video-desc">Hablamos de la rutina más perfecta posible y de cómo podemos acercarnos a ella en la vida real, con nuestras limitaciones.</div>
+          <div class="video-status">
+            <div class="video-status-dot video-status-dot--pending"></div>
+            Pendiente
+          </div>
+        </div>
+      </div>
+
+      <!-- VID 03 -->
+      <div class="video-card">
+        <div class="video-thumb">
+          <div class="video-thumb-placeholder">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12l-18 10V2z"/></svg>
+            <span>Miniatura</span>
+          </div>
+          <div class="video-order">03</div>
+        </div>
+        <div class="video-body">
+          <div class="video-title">¿Cuáles son los hábitos saludables que menos cuesta implementar? Los ordeno de más fácil a más difícil.</div>
+          <div class="video-desc"></div>
+          <div class="video-status">
+            <div class="video-status-dot video-status-dot--pending"></div>
+            Pendiente
+          </div>
+        </div>
+      </div>
+
+      <!-- VID 04 -->
+      <div class="video-card">
+        <div class="video-thumb">
+          <div class="video-thumb-placeholder">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 12l-18 10V2z"/></svg>
+            <span>Miniatura</span>
+          </div>
+          <div class="video-order">04</div>
+        </div>
+        <div class="video-body">
+          <div class="video-title">Hábitos FLASH para pasar de hacer todo mal a hacer casi todo bien aunque no tengas tiempo.</div>
+          <div class="video-desc"></div>
+          <div class="video-status">
+            <div class="video-status-dot video-status-dot--pending"></div>
+            Pendiente
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SERIE 2: PODCAST PREGUNTAS ── -->
+  <div class="series-block">
+    <div class="series-header">
+      <div class="series-badge series-badge--secondary">Serie 02</div>
+      <div class="series-title">Podcast de preguntas rápidas y prácticas</div>
+      <div class="series-count">Próximamente</div>
+    </div>
+    <div style="background:var(--black-card); border:1px solid var(--black-border); border-left:3px solid rgba(201,168,76,0.2); padding:24px 28px;">
+      <p style="font-size:0.78rem; line-height:1.8; color:var(--grey);">Los vídeos de esta serie están por definir. Añádelos cuando estén listos.</p>
+    </div>
+  </div>
+
+  <div class="section-footer">
+    <div class="section-footer-brand">David Origen © 2025</div>
+    <div class="section-footer-num">Sección 03 / Series</div>
+  </div>
+</section>
 
 </body>
 </html>
